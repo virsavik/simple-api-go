@@ -1,0 +1,11 @@
+basePath: /api
+host: localhost:8000
+info:
+  contact: {}
+  description: This is a simple Warehouse management project for learning Go language
+    and PostgreSQL database.
+  termsOfService: http://swagger.io/terms/
+  title: Warehouse Management API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

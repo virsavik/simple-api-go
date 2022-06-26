@@ -1,0 +1,31 @@
+version: '1.0'
+
+services:
+  database:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: s3corp-golang-fresher
+    volumes:
+      - "database:/var/lib/postgresql/data"
+
+# TODO: Add Migration service here
+#  migration:
+#
+
+  app:
+    image: s3corp-golang-fresher:latest
+    restart: on-failure
+    environment:
+      CONNECTION_STRING: ${CONNECTION_STRING}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+
+volumes:
+  database:

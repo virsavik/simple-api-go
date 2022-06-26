@@ -1,0 +1,13 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a simple Warehouse management project for learning Go language and PostgreSQL database.",
+        "title": "Warehouse Management API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8000",
+    "basePath": "/api",
+    "paths": {}
+}
