@@ -1,0 +1,16 @@
+output = "internal/model"
+pkgname = "model"
+wipe = true
+no-tests = false
+add-enum-types = true
+add-global-variants = false
+
+[psql]
+dbname = "warehouse"
+host = "localhost"
+port = "5432"
+user = "postgres"
+pass = "postgres"
+sslmode = "disable"
+schema = "public"
+blacklist = ["schema_migrations"]
