@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/joho/godotenv"
-	"github.com/spf13/viper"
 	"github.com/swaggo/http-swagger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	_ "gokiosk/api"
 	"log"
 	"net/http"
+	"os"
 )
 
 // @title Warehouse Management API
@@ -21,7 +21,7 @@ import (
 // @BasePath /api
 func main() {
 	readDotEnv()
-	port := viper.Get("APP_PORT").(string)
+	port := os.Getenv("APP_PORT")
 
 	boil.DebugMode = true
 	r := chi.NewRouter()
