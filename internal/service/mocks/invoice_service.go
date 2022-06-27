@@ -5,7 +5,6 @@ import (
 	"gokiosk/internal/errors"
 	"gokiosk/internal/model"
 	"gokiosk/internal/service"
-	"gokiosk/internal/service/mocks/testdata"
 )
 
 type InvoiceServiceMock struct{}
@@ -13,11 +12,6 @@ type InvoiceServiceMock struct{}
 func NewInvoiceServiceMock() service.IInvoiceService {
 	return InvoiceServiceMock{}
 }
-
-// Fake data from testdata package
-var invoiceSlice = testdata.Invoices
-var userSlice = testdata.Users
-var invoiceProductSlice = testdata.InvoiceProducts
 
 func (i InvoiceServiceMock) GetAllInvoices(offset, limit int) (model.InvoiceSlice, error) {
 	// Return nil slice and error OFFSET_AND_LIMIT_MUST_BE_POSITIVE if offset or limit is negative
@@ -100,22 +94,4 @@ func (i InvoiceServiceMock) DeleteInvoice(id string) error {
 
 	// Return error if invoice not found if id is not exists
 	return fmt.Errorf(errors.ERR_NOT_FOUND)
-}
-
-func findStorekeeperByID(id string) *model.User {
-	for _, user := range userSlice {
-		if user.ID == id {
-			return user
-		}
-	}
-	return nil
-}
-
-func isExistsInvoiceProductWithInvoiceID(id string) bool {
-	for _, invoiceProduct := range invoiceProductSlice {
-		if invoiceProduct.InvoiceID == id {
-			return true
-		}
-	}
-	return false
 }
