@@ -40,6 +40,11 @@ func (h InvoiceHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	// 1. Get offset and limit from request
 	offset, limit := getPaginationParams(r)
 
+	if offset < 0 || limit < 0 {
+		writeErrorResponse(w, http.StatusBadRequest, fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE))
+		return
+	}
+
 	// 2. Get all invoices by offset and limit
 	invoices, err := h.InvoiceService.GetAllByPaginate(offset, limit)
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"gokiosk/internal/errors"
 	"gokiosk/internal/model"
 	"gokiosk/internal/service/mocks"
+	"gokiosk/test/testdata"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -22,8 +23,6 @@ type paginationTest struct {
 }
 
 func TestInvoiceHandler_GetAll(t *testing.T) {
-	serviceMock := mocks.NewInvoiceServiceMock()
-	invoiceHandler := NewInvoiceHandler(serviceMock)
 
 	tcs := map[string]struct {
 		input        paginationTest
@@ -50,20 +49,26 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
-			// 1. Define http test request with query params for offset and limit
+			// 1. Given
+
+			serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
+			serviceMock.On("GetAllByPaginate", 0, 2).Return(testdata.Invoices[0:2], nil).Once()
+			serviceMock.On("GetAllByPaginate", 0, -2).Return(nil, nil).Once()
+			invoiceHandler := NewInvoiceHandler(serviceMock)
+
 			r := httptest.NewRequest("GET", fmt.Sprintf("/invoices?offset=%d&limit=%d", tc.input.offset, tc.input.limit), nil)
 			rctx := chi.NewRouteContext()                                            // Init chi route context
 			rctx.URLParams.Add("offset", strconv.Itoa(tc.input.offset))              // Add offset to chi route context
 			rctx.URLParams.Add("limit", strconv.Itoa(tc.input.limit))                // Add limit to chi route context
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
 
-			// 2. Define http test response
 			w := httptest.NewRecorder()
 
-			// 3. Call handler getAll
+			// 2. When
 			invoiceHandler.GetAll(w, r)
 
-			// 4. Check response code and body
+			// 3. Then
+
 			if tc.expErr != nil {
 				// Should be error
 				require.EqualError(t, tc.expErr, w.Body.String(), "Should be error")
@@ -82,7 +87,7 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 }
 
 func TestInvoiceHandler_GetByID(t *testing.T) {
-	serviceMock := mocks.NewInvoiceServiceMock()
+	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
 	invoiceHandler := NewInvoiceHandler(serviceMock)
 
 	tcs := map[string]struct {
@@ -140,7 +145,7 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 }
 
 func TestInvoiceHandler_Create(t *testing.T) {
-	serviceMock := mocks.NewInvoiceServiceMock()
+	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
 	invoiceHandler := NewInvoiceHandler(serviceMock)
 
 	tcs := map[string]struct {
@@ -213,7 +218,7 @@ func TestInvoiceHandler_Create(t *testing.T) {
 }
 
 func TestInvoiceHandler_Update(t *testing.T) {
-	serviceMock := mocks.NewInvoiceServiceMock()
+	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
 	invoiceHandler := NewInvoiceHandler(serviceMock)
 
 	tcs := map[string]struct {
@@ -312,7 +317,7 @@ func TestInvoiceHandler_Update(t *testing.T) {
 }
 
 func TestInvoiceHandler_Delete(t *testing.T) {
-	serviceMock := mocks.NewInvoiceServiceMock()
+	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
 	invoiceHandler := NewInvoiceHandler(serviceMock)
 
 	tcs := map[string]struct {
