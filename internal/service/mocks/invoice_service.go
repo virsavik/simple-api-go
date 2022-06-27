@@ -5,6 +5,7 @@ import (
 	"gokiosk/internal/errors"
 	"gokiosk/internal/model"
 	"gokiosk/internal/service"
+	"gokiosk/internal/service/mocks/testdata"
 )
 
 type InvoiceServiceMock struct{}
@@ -13,65 +14,21 @@ func NewInvoiceServiceMock() service.IInvoiceService {
 	return InvoiceServiceMock{}
 }
 
-var invoiceSlice = model.InvoiceSlice{
-	&model.Invoice{
-		ID:            "1",
-		StorekeeperID: "KEEPER-0001",
-	},
-	&model.Invoice{
-		ID:            "2",
-		StorekeeperID: "KEEPER-0002",
-	},
-	&model.Invoice{
-		ID:            "3",
-		StorekeeperID: "KEEPER-0003",
-	},
-	&model.Invoice{
-		ID:            "4",
-		StorekeeperID: "KEEPER-0003",
-	},
-	&model.Invoice{
-		ID:            "5",
-		StorekeeperID: "KEEPER-0003",
-	},
-	&model.Invoice{
-		ID:            "6",
-		StorekeeperID: "KEEPER-0004",
-	},
-}
-
-var invoiceProductSlice = model.InvoiceProductSlice{
-	&model.InvoiceProduct{
-		InvoiceID: "1",
-		ProductID: "1",
-	},
-}
-
-var userSlice = model.UserSlice{
-	&model.User{
-		ID:   "KEEPER-0001",
-		Name: "Wilson",
-	},
-	&model.User{
-		ID:   "KEEPER-0002",
-		Name: "Knight",
-	},
-	&model.User{
-		ID:   "KEEPER-0003",
-		Name: "Hollow",
-	},
-	&model.User{
-		ID:   "KEEPER-0004",
-		Name: "Lion",
-	},
-}
+// Fake data from testdata package
+var invoiceSlice = testdata.Invoices
+var userSlice = testdata.Users
+var invoiceProductSlice = testdata.InvoiceProducts
 
 func (i InvoiceServiceMock) GetAllInvoices(offset, limit int) (model.InvoiceSlice, error) {
 	// Return nil slice and error OFFSET_AND_LIMIT_MUST_BE_POSITIVE if offset or limit is negative
 	if offset < 0 || limit < 0 {
 		return nil, fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE)
 	}
+
+	// Define slice of invoices
 	var slice model.InvoiceSlice
+
+	// Append invoice to slice if position is in range of offset and limit
 	for i, invoice := range invoiceSlice {
 		if i >= offset && i < offset+limit {
 			slice = append(slice, invoice)
@@ -92,16 +49,20 @@ func (i InvoiceServiceMock) GetInvoice(id string) (*model.Invoice, error) {
 }
 
 func (i InvoiceServiceMock) CreateInvoice(invoice model.Invoice) (*model.Invoice, error) {
+	// Return error if storekeeper id is not exists
 	if findStorekeeperByID(invoice.StorekeeperID) == nil {
 		return nil, fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST)
 	}
+
 	invoice.ID = fmt.Sprintf("%d", len(invoiceSlice)+1) // Generate ID
 	invoiceSlice = append(invoiceSlice, &invoice)       // Add invoice to slice
-	// ! Return invoice and nil if successful
+
+	// Return invoice and nil if successful
 	return &invoice, nil
 }
 
 func (i InvoiceServiceMock) UpdateInvoice(id string, invoice model.Invoice) (*model.Invoice, error) {
+	// Return error if storekeeper id is not exists
 	if findStorekeeperByID(invoice.StorekeeperID) == nil {
 		return nil, fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST)
 	}
@@ -111,12 +72,15 @@ func (i InvoiceServiceMock) UpdateInvoice(id string, invoice model.Invoice) (*mo
 		return nil, fmt.Errorf(errors.ERR_ID_MUST_BE_MATCH)
 	}
 
+	// For each invoice in slice, if id is same, update invoice
 	for i, elem := range invoiceSlice {
 		if elem.ID == id {
 			invoiceSlice[i] = &invoice
 			return &invoice, nil
 		}
 	}
+
+	// Return error if invoice not found
 	return nil, fmt.Errorf(errors.ERR_NOT_FOUND)
 }
 
@@ -133,6 +97,7 @@ func (i InvoiceServiceMock) DeleteInvoice(id string) error {
 			return nil
 		}
 	}
+
 	// Return error if invoice not found if id is not exists
 	return fmt.Errorf(errors.ERR_NOT_FOUND)
 }
