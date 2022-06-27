@@ -19,7 +19,7 @@ var invoiceSlice = testdata.Invoices
 var userSlice = testdata.Users
 var invoiceProductSlice = testdata.InvoiceProducts
 
-func (i InvoiceServiceMock) GetAllInvoices(offset, limit int) (model.InvoiceSlice, error) {
+func (i InvoiceServiceMock) GetAllByPaginate(offset, limit int) (model.InvoiceSlice, error) {
 	// Return nil slice and error OFFSET_AND_LIMIT_MUST_BE_POSITIVE if offset or limit is negative
 	if offset < 0 || limit < 0 {
 		return nil, fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE)
@@ -37,7 +37,7 @@ func (i InvoiceServiceMock) GetAllInvoices(offset, limit int) (model.InvoiceSlic
 	return slice, nil
 }
 
-func (i InvoiceServiceMock) GetInvoice(id string) (*model.Invoice, error) {
+func (i InvoiceServiceMock) GetById(id string) (*model.Invoice, error) {
 	// Find invoice by id
 	for _, invoice := range invoiceSlice {
 		if invoice.ID == id {
@@ -48,7 +48,7 @@ func (i InvoiceServiceMock) GetInvoice(id string) (*model.Invoice, error) {
 	return nil, fmt.Errorf(errors.ERR_NOT_FOUND)
 }
 
-func (i InvoiceServiceMock) CreateInvoice(invoice model.Invoice) (*model.Invoice, error) {
+func (i InvoiceServiceMock) Create(invoice model.Invoice) (*model.Invoice, error) {
 	// Return error if storekeeper id is not exists
 	if findStorekeeperByID(invoice.StorekeeperID) == nil {
 		return nil, fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST)
@@ -61,7 +61,7 @@ func (i InvoiceServiceMock) CreateInvoice(invoice model.Invoice) (*model.Invoice
 	return &invoice, nil
 }
 
-func (i InvoiceServiceMock) UpdateInvoice(id string, invoice model.Invoice) (*model.Invoice, error) {
+func (i InvoiceServiceMock) Update(id string, invoice model.Invoice) (*model.Invoice, error) {
 	// Return error if storekeeper id is not exists
 	if findStorekeeperByID(invoice.StorekeeperID) == nil {
 		return nil, fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST)
@@ -84,7 +84,7 @@ func (i InvoiceServiceMock) UpdateInvoice(id string, invoice model.Invoice) (*mo
 	return nil, fmt.Errorf(errors.ERR_NOT_FOUND)
 }
 
-func (i InvoiceServiceMock) DeleteInvoice(id string) error {
+func (i InvoiceServiceMock) DeleteById(id string) error {
 	// Return "error relation exists" if at least one invoice product with invoice id
 	if isExistsInvoiceProductWithInvoiceID(id) {
 		return fmt.Errorf(errors.ERR_RELATION_EXISTS)

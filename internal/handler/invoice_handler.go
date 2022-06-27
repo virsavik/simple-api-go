@@ -41,7 +41,7 @@ func (h InvoiceHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	offset, limit := getPaginationParams(r)
 
 	// 2. Get all invoices by offset and limit
-	invoices, err := h.InvoiceService.GetAllInvoices(offset, limit)
+	invoices, err := h.InvoiceService.GetAllByPaginate(offset, limit)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
@@ -57,7 +57,7 @@ func (h InvoiceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// 2. Get invoice by id
-	invoice, err := h.InvoiceService.GetInvoice(id)
+	invoice, err := h.InvoiceService.GetById(id)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
@@ -84,7 +84,7 @@ func (h InvoiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 3. Create invoice by invoice data
-	result, err := h.InvoiceService.CreateInvoice(invoice)
+	result, err := h.InvoiceService.Create(invoice)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
@@ -120,7 +120,7 @@ func (h InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. Update invoice by invoice data and invoice id
-	result, err := h.InvoiceService.UpdateInvoice(id, invoice)
+	result, err := h.InvoiceService.Update(id, invoice)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
@@ -136,7 +136,7 @@ func (h InvoiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// 2. Delete invoice by invoice id
-	err := h.InvoiceService.DeleteInvoice(id)
+	err := h.InvoiceService.DeleteById(id)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
