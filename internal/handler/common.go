@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"gokiosk/internal/errors"
 	"log"
 	"net/http"
@@ -29,7 +30,9 @@ func writeJsonResponse(w http.ResponseWriter, status int, data interface{}) {
 		return
 	}
 	w.WriteHeader(status)
-	w.Write(result)
+	if data != nil {
+		w.Write(result)
+	}
 }
 
 func writeErrorResponse(w http.ResponseWriter, status int, err error) {
@@ -39,11 +42,11 @@ func writeErrorResponse(w http.ResponseWriter, status int, err error) {
 }
 
 func writeInternalServerError(w http.ResponseWriter) {
-	appErr := errors.NewAppError("Internal Server Error", "internal_server_error")
+	appErr := fmt.Errorf(errors.ERR_INTERNAL_SERVER_ERROR)
 	writeErrorResponse(w, http.StatusInternalServerError, appErr)
 }
 
-func writeBadRequestError(w http.ResponseWriter, message, code string) {
-	appErr := errors.NewAppError(message, code)
+func writeBadRequestError(w http.ResponseWriter) {
+	appErr := fmt.Errorf(errors.ERR_BAD_REQUEST)
 	writeErrorResponse(w, http.StatusBadRequest, appErr)
 }

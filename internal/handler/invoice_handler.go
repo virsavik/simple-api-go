@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi"
+	"gokiosk/internal/errors"
 	"gokiosk/internal/model"
 	"gokiosk/internal/service"
 	"net/http"
@@ -75,7 +77,13 @@ func (h InvoiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2. Create invoice by invoice data
+	// 2. Write bad request if invoice id is set
+	if invoice.ID != "" {
+		writeErrorResponse(w, http.StatusBadRequest, fmt.Errorf(errors.ERR_ID_MUST_BE_EMPTY))
+		return
+	}
+
+	// 3. Create invoice by invoice data
 	result, err := h.InvoiceService.CreateInvoice(invoice)
 	if err != nil {
 		// Write internal server error response if error occurs
@@ -83,8 +91,8 @@ func (h InvoiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Write response
-	writeJsonResponse(w, http.StatusOK, result)
+	// 4. Write response
+	writeJsonResponse(w, http.StatusCreated, result)
 }
 
 func (h InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +107,19 @@ func (h InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Update invoice by invoice data and invoice id
+	// 3. Write bad request if "request url param "id" is not set
+	if id == "" {
+		writeErrorResponse(w, http.StatusBadRequest, fmt.Errorf(errors.ERR_ID_MUST_BE_SET))
+		return
+	}
+
+	// 4. Write bad request if "invoice id" is not match with request url param "id"
+	if invoice.ID != id {
+		writeErrorResponse(w, http.StatusBadRequest, fmt.Errorf(errors.ERR_ID_MUST_BE_MATCH))
+		return
+	}
+
+	// 4. Update invoice by invoice data and invoice id
 	result, err := h.InvoiceService.UpdateInvoice(id, invoice)
 	if err != nil {
 		// Write internal server error response if error occurs
@@ -107,7 +127,7 @@ func (h InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 4. Write response
+	// 5. Write response
 	writeJsonResponse(w, http.StatusOK, result)
 }
 
@@ -124,5 +144,5 @@ func (h InvoiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 3. Write response
-	writeJsonResponse(w, http.StatusOK, nil)
+	writeJsonResponse(w, http.StatusNoContent, nil)
 }
