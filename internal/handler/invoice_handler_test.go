@@ -21,11 +21,6 @@ type paginationTest struct {
 	limit  int
 }
 
-type ExpResult struct {
-	code int
-	body []byte
-}
-
 func TestInvoiceHandler_GetAll(t *testing.T) {
 	serviceMock := mocks.NewInvoiceServiceMock()
 	invoiceHandler := NewInvoiceHandler(serviceMock)
@@ -58,8 +53,8 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 			// 1. Define http test request with query params for offset and limit
 			r := httptest.NewRequest("GET", fmt.Sprintf("/invoices?offset=%d&limit=%d", tc.input.offset, tc.input.limit), nil)
 			rctx := chi.NewRouteContext()                                            // Init chi route context
-			rctx.URLParams.Add("offset", strconv.Itoa(tc.input.offset))              // Set offset to chi route context
-			rctx.URLParams.Add("limit", strconv.Itoa(tc.input.limit))                // Set limit to chi route context
+			rctx.URLParams.Add("offset", strconv.Itoa(tc.input.offset))              // Add offset to chi route context
+			rctx.URLParams.Add("limit", strconv.Itoa(tc.input.limit))                // Add limit to chi route context
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
 
 			// 2. Define http test response
@@ -71,16 +66,16 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 			// 4. Check response code and body
 			if tc.expErr != nil {
 				// Should be error
-				require.EqualError(t, tc.expErr, w.Body.String())
+				require.EqualError(t, tc.expErr, w.Body.String(), "Should be error")
 			} else {
 				// Should be success
-				require.Equal(t, tc.expStatus, w.Code)
+				require.Equal(t, tc.expStatus, w.Code, "Should equal status")
 				var result []model.Invoice
 				err := json.Unmarshal(w.Body.Bytes(), &result)
 				if err != nil {
 					t.Fatal(err)
 				}
-				require.Equal(t, tc.expResultLen, len(result))
+				require.Equal(t, tc.expResultLen, len(result), "Should equal result length")
 			}
 		})
 	}
