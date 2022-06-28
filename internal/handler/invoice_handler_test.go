@@ -138,7 +138,7 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 				invID: "1",
 			},
 			exp: ExpectedData{
-				statusCode: http.StatusInternalServerError,
+				statusCode: http.StatusNotFound,
 			},
 			expErr: fmt.Errorf(errors.ERR_NOT_FOUND),
 		},
@@ -352,7 +352,7 @@ func TestInvoiceHandler_Update(t *testing.T) {
 				reqBodyPath:         "testdata/invoice_handler/request/update-error_invoice_not_found.json",
 			},
 			exp: ExpectedData{
-				statusCode: http.StatusInternalServerError,
+				statusCode: http.StatusNotFound,
 			},
 			expErr: fmt.Errorf(errors.ERR_NOT_FOUND),
 		},
@@ -447,7 +447,7 @@ func TestInvoiceHandler_Delete(t *testing.T) {
 				invID: "1",
 			},
 			expResult: ExpectedData{
-				statusCode: http.StatusInternalServerError,
+				statusCode: http.StatusNotFound,
 			},
 			expErr: fmt.Errorf(errors.ERR_NOT_FOUND),
 		},

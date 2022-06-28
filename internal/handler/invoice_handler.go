@@ -65,6 +65,11 @@ func (h InvoiceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	// 2. Get invoice by id
 	invoice, err := h.InvoiceService.GetByID(id)
 	if err != nil {
+		if err.Error() == errors.ERR_NOT_FOUND {
+			// Write not found response if error occurs
+			writeErrorResponse(w, http.StatusNotFound, err)
+			return
+		}
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
 		return
@@ -128,6 +133,11 @@ func (h InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	// 4. Update invoice by invoice data and invoice id
 	result, err := h.InvoiceService.Update(id, invoice)
 	if err != nil {
+		if err.Error() == errors.ERR_NOT_FOUND {
+			// Write not found response if error occurs
+			writeErrorResponse(w, http.StatusNotFound, err)
+			return
+		}
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
 		return
@@ -144,6 +154,11 @@ func (h InvoiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	// 2. Delete invoice by invoice id
 	err := h.InvoiceService.DeleteByID(id)
 	if err != nil {
+		if err.Error() == errors.ERR_NOT_FOUND {
+			// Write not found response if error occurs
+			writeErrorResponse(w, http.StatusNotFound, err)
+			return
+		}
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
 		return
