@@ -1,4 +1,6 @@
 {
-  "id":            "3",
-  "storekeeper_id": "KEEPER-0003"
+  "id":            "1",
+  "storekeeper_id": "KEEPER-0003",
+  "created_at": "1970-01-01T00:00:00.000Z",
+  "updated_at": "1970-01-01T00:00:00.000Z"
 }
