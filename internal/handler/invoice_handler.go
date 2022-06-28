@@ -152,8 +152,7 @@ func (h InvoiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// 2. Delete invoice by invoice id
-	err := h.InvoiceService.DeleteByID(id)
-	if err != nil {
+	if err := h.InvoiceService.DeleteByID(id); err != nil {
 		if err.Error() == errors.ERR_NOT_FOUND {
 			// Write not found response if error occurs
 			writeErrorResponse(w, http.StatusNotFound, err)
