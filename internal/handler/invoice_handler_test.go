@@ -10,6 +10,7 @@ import (
 	"gokiosk/internal/model"
 	"gokiosk/internal/service/mocks"
 	"gokiosk/test/testdata"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -25,25 +26,26 @@ type paginationTest struct {
 func TestInvoiceHandler_GetAll(t *testing.T) {
 
 	tcs := map[string]struct {
-		input        paginationTest
-		expStatus    int
-		expResultLen int
-		expErr       error
+		input     paginationTest
+		expStatus int
+		expResult string
+		expErr    error
 	}{
 		"success": {
 			input: paginationTest{
 				offset: 0,
 				limit:  2,
 			},
-			expStatus:    http.StatusOK,
-			expResultLen: 2,
+			expStatus: http.StatusOK,
+			expResult: "get_all-success.json",
 		},
 		"error_offset_or_limit_negative": {
 			input: paginationTest{
 				offset: 0,
 				limit:  -2,
 			},
-			expErr: fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE),
+			expStatus: http.StatusBadRequest,
+			expErr:    fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE),
 		},
 	}
 
@@ -71,16 +73,20 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 
 			if tc.expErr != nil {
 				// Should be error
+				require.Equal(t, tc.expStatus, w.Code, "Should equal status")
 				require.EqualError(t, tc.expErr, w.Body.String(), "Should be error")
 			} else {
 				// Should be success
 				require.Equal(t, tc.expStatus, w.Code, "Should equal status")
-				var result []model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &result)
+				plan, err := ioutil.ReadFile(tc.expResult)
 				if err != nil {
 					t.Fatal(err)
 				}
-				require.Equal(t, tc.expResultLen, len(result), "Should equal result length")
+				var data model.InvoiceSlice
+				if err := json.Unmarshal(plan, &data); err != nil {
+					t.Fatal(err)
+				}
+				require.JSONEq(t, string(plan), string(w.Body.Bytes()), "Should equal response")
 			}
 		})
 	}
