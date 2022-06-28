@@ -87,18 +87,17 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 				require.Equal(t, tc.exp.statusCode, w.Code, "Should equal status")
 
 				var actualResult []model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
-				if err != nil {
+				if err := json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}
 
-				resultBytes, err := ioutil.ReadFile(tc.exp.resultPath)
-				if err != nil {
-					t.Fatal(err)
+				resultBytes, rfErr := ioutil.ReadFile(tc.exp.resultPath)
+				if rfErr != nil {
+					t.Fatal(rfErr)
 				}
+
 				var expectedResult []model.Invoice
-				err = json.Unmarshal(resultBytes, &expectedResult)
-				if err != nil {
+				if err := json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
 
@@ -172,18 +171,16 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 				require.Equal(t, tc.exp.statusCode, w.Code)
 
 				var actualResult model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
-				if err != nil {
+				if err := json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}
 
-				resultBytes, err := ioutil.ReadFile(tc.exp.resultPath)
-				if err != nil {
-					t.Fatal(err)
+				resultBytes, rfErr := ioutil.ReadFile(tc.exp.resultPath)
+				if rfErr != nil {
+					t.Fatal(rfErr)
 				}
 				var expectedResult model.Invoice
-				err = json.Unmarshal(resultBytes, &expectedResult)
-				if err != nil {
+				if err := json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
 
@@ -273,18 +270,17 @@ func TestInvoiceHandler_Create(t *testing.T) {
 				require.Equal(t, tc.exp.statusCode, w.Code) // Check response code
 
 				var actualResult model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
-				if err != nil {
+				if err := json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}
 
-				resultBytes, err := ioutil.ReadFile(tc.exp.resultPath)
-				if err != nil {
-					t.Fatal(err)
+				resultBytes, rfErr := ioutil.ReadFile(tc.exp.resultPath)
+				if rfErr != nil {
+					t.Fatal(rfErr)
 				}
+
 				var expectedResult model.Invoice
-				err = json.Unmarshal(resultBytes, &expectedResult)
-				if err != nil {
+				if err = json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
 
