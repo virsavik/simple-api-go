@@ -9,7 +9,6 @@ import (
 	"gokiosk/internal/errors"
 	"gokiosk/internal/model"
 	"gokiosk/internal/service/mocks"
-	"gokiosk/test/testdata"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -24,23 +23,22 @@ type paginationTest struct {
 }
 
 func TestInvoiceHandler_GetAll(t *testing.T) {
-
 	tcs := map[string]struct {
-		input     paginationTest
-		expStatus int
-		expResult string
-		expErr    error
+		given        paginationTest
+		expStatus    int
+		expResultLoc string
+		expErr       error
 	}{
 		"success": {
-			input: paginationTest{
+			given: paginationTest{
 				offset: 0,
 				limit:  2,
 			},
-			expStatus: http.StatusOK,
-			expResult: "get_all-success.json",
+			expStatus:    http.StatusOK,
+			expResultLoc: "testdata/invoice_handler/response/get_all-success.json",
 		},
 		"error_offset_or_limit_negative": {
-			input: paginationTest{
+			given: paginationTest{
 				offset: 0,
 				limit:  -2,
 			},
@@ -52,16 +50,27 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
 			// 1. Given
+			var expResult []model.Invoice
+
+			if tc.expResultLoc != "" {
+				plan, err := ioutil.ReadFile(tc.expResultLoc)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = json.Unmarshal(plan, &expResult)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
 
 			serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
-			serviceMock.On("GetAllByPaginate", 0, 2).Return(testdata.Invoices[0:2], nil).Once()
-			serviceMock.On("GetAllByPaginate", 0, -2).Return(nil, nil).Once()
+			serviceMock.On("GetAllByPaginate", tc.given.offset, tc.given.limit).Return(expResult, tc.expErr)
 			invoiceHandler := NewInvoiceHandler(serviceMock)
 
-			r := httptest.NewRequest("GET", fmt.Sprintf("/invoices?offset=%d&limit=%d", tc.input.offset, tc.input.limit), nil)
+			r := httptest.NewRequest("GET", fmt.Sprintf("/invoices?offset=%d&limit=%d", tc.given.offset, tc.given.limit), nil)
 			rctx := chi.NewRouteContext()                                            // Init chi route context
-			rctx.URLParams.Add("offset", strconv.Itoa(tc.input.offset))              // Add offset to chi route context
-			rctx.URLParams.Add("limit", strconv.Itoa(tc.input.limit))                // Add limit to chi route context
+			rctx.URLParams.Add("offset", strconv.Itoa(tc.given.offset))              // Add offset to chi route context
+			rctx.URLParams.Add("limit", strconv.Itoa(tc.given.limit))                // Add limit to chi route context
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
 
 			w := httptest.NewRecorder()
@@ -70,7 +79,6 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 			invoiceHandler.GetAll(w, r)
 
 			// 3. Then
-
 			if tc.expErr != nil {
 				// Should be error
 				require.Equal(t, tc.expStatus, w.Code, "Should equal status")
@@ -78,40 +86,31 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 			} else {
 				// Should be success
 				require.Equal(t, tc.expStatus, w.Code, "Should equal status")
-				plan, err := ioutil.ReadFile(tc.expResult)
+				var actualResult []model.Invoice
+				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
 				if err != nil {
 					t.Fatal(err)
 				}
-				var data model.InvoiceSlice
-				if err := json.Unmarshal(plan, &data); err != nil {
-					t.Fatal(err)
-				}
-				require.JSONEq(t, string(plan), string(w.Body.Bytes()), "Should equal response")
+				require.Equal(t, expResult, actualResult, "Should equal expected result")
 			}
 		})
 	}
 }
 
 func TestInvoiceHandler_GetByID(t *testing.T) {
-	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
-	invoiceHandler := NewInvoiceHandler(serviceMock)
-
 	tcs := map[string]struct {
-		input     string
-		expResult model.Invoice
-		expStatus int
-		expErr    error
+		given        string
+		expStatus    int
+		expResultLoc string
+		expErr       error
 	}{
 		"success": {
-			input: "3",
-			expResult: model.Invoice{
-				ID:            "3",
-				StorekeeperID: "KEEPER-0003",
-			},
-			expStatus: http.StatusOK,
+			given:        "3",
+			expResultLoc: "testdata/invoice_handler/response/get_by_id-success.json",
+			expStatus:    http.StatusOK,
 		},
 		"error_invoice_not_found": {
-			input:     "XXXX",
+			given:     "XXXX",
 			expErr:    fmt.Errorf(errors.ERR_NOT_FOUND),
 			expStatus: http.StatusInternalServerError,
 		},
@@ -119,19 +118,35 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
-			// 1. Define http test request with query params for offset and limit
-			r := httptest.NewRequest("GET", fmt.Sprintf("/invoices/%s", tc.input), nil)
+			// 1. Given
+			var expResult model.Invoice
+
+			if tc.expResultLoc != "" {
+				plan, err := ioutil.ReadFile(tc.expResultLoc)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = json.Unmarshal(plan, &expResult)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
+			serviceMock.On("GetByID", tc.given).Return(expResult, tc.expErr)
+			invoiceHandler := NewInvoiceHandler(serviceMock)
+
+			r := httptest.NewRequest("GET", fmt.Sprintf("/invoices/%s", tc.given), nil)
 			rctx := chi.NewRouteContext()                                            // Init chi route context
-			rctx.URLParams.Add("id", tc.input)                                       // Set invoice id to chi route context
+			rctx.URLParams.Add("id", tc.given)                                       // Set invoice id to chi route context
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
 
-			// 2. Define http test response
 			w := httptest.NewRecorder()
 
-			// 3. Call handler getByID
+			// 2. When
 			invoiceHandler.GetByID(w, r)
 
-			// 4. Check response code and body
+			// 3. Then
 			if tc.expErr != nil {
 				// Should be error
 				require.Equal(t, tc.expStatus, w.Code)
@@ -139,49 +154,36 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 			} else {
 				// Should be success
 				require.Equal(t, tc.expStatus, w.Code)
-				var result model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &result)
+				var actualResult model.Invoice
+				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
 				if err != nil {
 					t.Fatal(err)
 				}
-				require.Equal(t, tc.expResult, result)
+				require.Equal(t, expResult, actualResult, "Should equal expected result")
 			}
 		})
 	}
 }
 
 func TestInvoiceHandler_Create(t *testing.T) {
-	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
-	invoiceHandler := NewInvoiceHandler(serviceMock)
-
 	tcs := map[string]struct {
-		input     model.Invoice
-		expResult model.Invoice
-		expStatus int
-		expErr    error
+		given        string
+		expResultLoc string
+		expStatus    int
+		expErr       error
 	}{
 		"success": {
-			input: model.Invoice{
-				StorekeeperID: "KEEPER-0004",
-			},
-			expResult: model.Invoice{
-				ID:            "7",
-				StorekeeperID: "KEEPER-0004",
-			},
-			expStatus: http.StatusCreated,
+			given:        "testdata/invoice_handler/request/create-success.json",
+			expResultLoc: "testdata/invoice_handler/response/create-success.json",
+			expStatus:    http.StatusCreated,
 		},
 		"error_id_must_be_empty": {
-			input: model.Invoice{
-				ID:            "7",
-				StorekeeperID: "KEEPER-0004",
-			},
+			given:     "testdata/invoice_handler/request/create-error_id_must_be_empty.json",
 			expErr:    fmt.Errorf(errors.ERR_ID_MUST_BE_EMPTY),
 			expStatus: http.StatusBadRequest,
 		},
 		"error_storekeeper_id_not_found": {
-			input: model.Invoice{
-				StorekeeperID: "KEEPER-XXXX",
-			},
+			given:     "testdata/invoice_handler/request/create-error_storekeeper_id_not_found.json",
 			expErr:    fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST),
 			expStatus: http.StatusInternalServerError,
 		},
@@ -189,22 +191,42 @@ func TestInvoiceHandler_Create(t *testing.T) {
 
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
-			reqBody, err := json.Marshal(tc.input)
+			// 1. Given
+			reqBody, err := ioutil.ReadFile(tc.given)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			// 1. Define http test request with query params for offset and limit
+			var invoice model.Invoice
+			err = json.Unmarshal(reqBody, &invoice)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			var expResult model.Invoice
+			if tc.expResultLoc != "" {
+				plan, err := ioutil.ReadFile(tc.expResultLoc)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = json.Unmarshal(plan, &expResult)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
+			serviceMock.On("Create", invoice).Return(expResult, tc.expErr)
+			invoiceHandler := NewInvoiceHandler(serviceMock)
+
 			r := httptest.NewRequest("POST", "/invoices", strings.NewReader(string(reqBody)))
 			r.Header.Set("Content-Type", "application/json") // Set content type application/json for request
-
-			// 2. Define http test response
 			w := httptest.NewRecorder()
 
-			// 3. Call handler Create
+			// 2. When
 			invoiceHandler.Create(w, r)
 
-			// 4. Check response code and body
+			// 3. Then
 			if tc.expErr != nil {
 				// Should be error
 				require.Equal(t, tc.expStatus, w.Code)            // Check response code
@@ -212,167 +234,213 @@ func TestInvoiceHandler_Create(t *testing.T) {
 			} else {
 				// Should be success
 				require.Equal(t, tc.expStatus, w.Code) // Check response code
-				var result model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &result)
+				var actualResult model.Invoice
+				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
 				if err != nil {
 					t.Fatal(err)
 				}
-				require.Equal(t, tc.expResult, result) // check response body
+				require.Equal(t, expResult, actualResult, "Should be equal expected result") // check response body
 			}
 		})
 	}
 }
 
 func TestInvoiceHandler_Update(t *testing.T) {
-	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
-	invoiceHandler := NewInvoiceHandler(serviceMock)
+	type UpdateGiven struct {
+		invID      string
+		reqBodyLoc string
+	}
+
+	type UpdateExpected struct {
+		expResultLoc string
+		expStatus    int
+	}
 
 	tcs := map[string]struct {
-		inReqParam string
-		inReqBody  model.Invoice
-		expResult  model.Invoice
-		expStatus  int
-		expErr     error
+		given     UpdateGiven
+		expResult UpdateExpected
+		expErr    error
 	}{
 		"success": {
-			inReqParam: "2",
-			inReqBody: model.Invoice{
-				ID:            "2",
-				StorekeeperID: "KEEPER-0002",
+			given: UpdateGiven{
+				invID:      "2",
+				reqBodyLoc: "testdata/invoice_handler/request/update-success.json",
 			},
-			expResult: model.Invoice{
-				ID:            "2",
-				StorekeeperID: "KEEPER-0002",
+			expResult: UpdateExpected{
+				expResultLoc: "testdata/invoice_handler/response/update-success.json",
+				expStatus:    http.StatusOK,
 			},
-			expStatus: http.StatusOK,
 		},
 		"error_id_must_be_set": {
-			inReqBody: model.Invoice{
-				ID:            "3",
-				StorekeeperID: "KEEPER-0005",
+			given: UpdateGiven{
+				invID:      "",
+				reqBodyLoc: "testdata/invoice_handler/request/update-error_id_must_be_set.json",
 			},
-			expErr:    fmt.Errorf(errors.ERR_ID_MUST_BE_SET),
-			expStatus: http.StatusBadRequest,
+			expResult: UpdateExpected{
+				expStatus: http.StatusBadRequest,
+			},
+			expErr: fmt.Errorf(errors.ERR_ID_MUST_BE_SET),
 		},
 		"error_id_must_be_match": {
-			inReqParam: "2",
-			inReqBody: model.Invoice{
-				ID:            "3",
-				StorekeeperID: "KEEPER-0005",
+			given: UpdateGiven{
+				invID:      "1",
+				reqBodyLoc: "testdata/invoice_handler/request/update-error_id_must_be_match.json",
 			},
-			expErr:    fmt.Errorf(errors.ERR_ID_MUST_BE_MATCH),
-			expStatus: http.StatusBadRequest,
+			expResult: UpdateExpected{
+				expStatus: http.StatusBadRequest,
+			},
+			expErr: fmt.Errorf(errors.ERR_ID_MUST_BE_MATCH),
 		},
 		"error_invoice_not_found": {
-			inReqParam: "8",
-			inReqBody: model.Invoice{
-				ID:            "8",
-				StorekeeperID: "KEEPER-0003",
+			given: UpdateGiven{
+				invID:      "2",
+				reqBodyLoc: "testdata/invoice_handler/request/update-error_invoice_not_found.json",
 			},
-			expErr:    fmt.Errorf(errors.ERR_NOT_FOUND),
-			expStatus: http.StatusInternalServerError,
+			expResult: UpdateExpected{
+				expStatus: http.StatusInternalServerError,
+			},
+			expErr: fmt.Errorf(errors.ERR_NOT_FOUND),
 		},
 		"error_storekeeper_id_not_found": {
-			inReqParam: "2",
-			inReqBody: model.Invoice{
-				ID:            "2",
-				StorekeeperID: "KEEPER-XXXX",
+			given: UpdateGiven{
+				invID:      "2",
+				reqBodyLoc: "testdata/invoice_handler/request/update-error_storekeeper_id_not_found.json",
 			},
-			expErr:    fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST),
-			expStatus: http.StatusInternalServerError,
+			expResult: UpdateExpected{
+				expStatus: http.StatusInternalServerError,
+			},
+			expErr: fmt.Errorf(errors.ERR_RELATION_DOES_NOT_EXIST),
 		},
 	}
 
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
-			reqBody, err := json.Marshal(tc.inReqBody)
+			// 1. Given
+			reqBody, err := ioutil.ReadFile(tc.given.reqBodyLoc)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			// 1. Define http test request with query params for offset and limit
-			r := httptest.NewRequest("PUT", fmt.Sprintf("/invoices/%s", tc.inReqParam), strings.NewReader(string(reqBody)))
-			r.Header.Set("Content-Type", "application/json")                         // Set content type application/json for request
-			rctx := chi.NewRouteContext()                                            // Init chi route context
-			rctx.URLParams.Add("id", tc.inReqParam)                                  // Set invoice id to chi route context
-			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
+			var invoice model.Invoice
+			err = json.Unmarshal(reqBody, &invoice)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-			// 2. Define http test response
-			w := httptest.NewRecorder()
-
-			// 3. Call handler Create
-			invoiceHandler.Update(w, r)
-
-			// 4. Check response code and body
-			if tc.expErr != nil {
-				// Should be error
-				require.Equal(t, tc.expStatus, w.Code)            // Check response code
-				require.EqualError(t, tc.expErr, w.Body.String()) // check response body
-			} else {
-				// Should be success
-				require.Equal(t, tc.expStatus, w.Code) // Check response code
-				var result model.Invoice
-				err := json.Unmarshal(w.Body.Bytes(), &result)
+			var expResult model.Invoice
+			if tc.expResult.expResultLoc != "" {
+				plan, err := ioutil.ReadFile(tc.expResult.expResultLoc)
 				if err != nil {
 					t.Fatal(err)
 				}
-				require.Equal(t, tc.expResult, result) // check response body
+				err = json.Unmarshal(plan, &expResult)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
+			serviceMock.On("Update", tc.given.invID, invoice).Return(expResult, tc.expErr)
+			invoiceHandler := NewInvoiceHandler(serviceMock)
+
+			r := httptest.NewRequest("PUT", fmt.Sprintf("/invoices/%s", tc.given.invID), strings.NewReader(string(reqBody)))
+			r.Header.Set("Content-Type", "application/json")                         // Set content type application/json for request
+			rctx := chi.NewRouteContext()                                            // Init chi route context
+			rctx.URLParams.Add("id", tc.given.invID)                                 // Set invoice id to chi route context
+			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
+
+			w := httptest.NewRecorder()
+
+			// 2. When
+			invoiceHandler.Update(w, r)
+
+			// 3. Then
+			if tc.expErr != nil {
+				require.Equal(t, tc.expResult.expStatus, w.Code)  // Check response code
+				require.EqualError(t, tc.expErr, w.Body.String()) // check response body
+			} else {
+				require.Equal(t, tc.expResult.expStatus, w.Code) // Check response code
+				var actualResult model.Invoice
+				err := json.Unmarshal(w.Body.Bytes(), &actualResult)
+				if err != nil {
+					t.Fatal(err)
+				}
+				require.Equal(t, expResult, actualResult, "Should be equal expected result") // check response body
 			}
 		})
 	}
 }
 
 func TestInvoiceHandler_Delete(t *testing.T) {
-	serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
-	invoiceHandler := NewInvoiceHandler(serviceMock)
+	type DeleteGiven struct {
+		invID string
+	}
+
+	type DeleteExpected struct {
+		expResultLoc string
+		expStatus    int
+	}
 
 	tcs := map[string]struct {
-		in        string
-		expStatus int
-		expResult string
+		given     DeleteGiven
+		expResult DeleteExpected
 		expErr    error
 	}{
 		"success": {
-			in:        "6",
-			expStatus: http.StatusNoContent,
-			expResult: "",
+			given: DeleteGiven{
+				invID: "1",
+			},
+			expResult: DeleteExpected{
+				expStatus: http.StatusNoContent,
+			},
 		},
 		"error_invoice_not_found": {
-			in:        "8",
-			expStatus: http.StatusInternalServerError,
-			expErr:    fmt.Errorf(errors.ERR_NOT_FOUND),
+			given: DeleteGiven{
+				invID: "1",
+			},
+			expResult: DeleteExpected{
+				expStatus: http.StatusInternalServerError,
+			},
+			expErr: fmt.Errorf(errors.ERR_NOT_FOUND),
 		},
 		"error_another_referenced_it": {
-			in:        "1",
-			expErr:    fmt.Errorf(errors.ERR_RELATION_EXISTS),
-			expStatus: http.StatusInternalServerError,
+			given: DeleteGiven{
+				invID: "1",
+			},
+			expResult: DeleteExpected{
+				expStatus: http.StatusInternalServerError,
+			},
+			expErr: fmt.Errorf(errors.ERR_RELATION_EXISTS),
 		},
 	}
 
 	for desc, tc := range tcs {
 		t.Run(desc, func(t *testing.T) {
-			// 1. Define http test request with query params for offset and limit
-			r := httptest.NewRequest("DELETE", fmt.Sprintf("/invoices/%s", tc.in), nil)
+			// 1. Given
+			serviceMock := new(mocks.InvoiceServiceMock) // Init mock service
+			serviceMock.On("DeleteByID", tc.given.invID).Return(tc.expErr)
+			invoiceHandler := NewInvoiceHandler(serviceMock)
+
+			r := httptest.NewRequest("DELETE", fmt.Sprintf("/invoices/%s", tc.given.invID), nil)
 			rctx := chi.NewRouteContext()                                            // Init chi route context
-			rctx.URLParams.Add("id", tc.in)                                          // Set invoice id to chi route context
+			rctx.URLParams.Add("id", tc.given.invID)                                 // Set invoice id to chi route context
 			r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx)) // Add chi route context to request
 
-			// 2. Define http test response
 			w := httptest.NewRecorder()
 
-			// 3. Call handler Delete
+			// 2. When
 			invoiceHandler.Delete(w, r)
 
-			// 4. Check response code and body
+			// 3. Then
 			if tc.expErr != nil {
 				// Should be error
-				require.Equal(t, tc.expStatus, w.Code)
+				require.Equal(t, tc.expResult.expStatus, w.Code)
 				require.EqualError(t, tc.expErr, w.Body.String())
 			} else {
 				// Should be success
-				require.Equal(t, tc.expStatus, w.Code)
-				require.Equal(t, tc.expResult, w.Body.String())
+				require.Equal(t, tc.expResult.expStatus, w.Code)
 			}
+
 		})
 	}
 }

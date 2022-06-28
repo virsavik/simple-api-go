@@ -40,12 +40,13 @@ func (h InvoiceHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	// 1. Get offset and limit from request
 	offset, limit := getPaginationParams(r)
 
+	// 2. Throw bad request if offset or limit is not valid
 	if offset < 0 || limit < 0 {
 		writeErrorResponse(w, http.StatusBadRequest, fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE))
 		return
 	}
 
-	// 2. Get all invoices by offset and limit
+	// 3. Get all invoices by offset and limit
 	invoices, err := h.InvoiceService.GetAllByPaginate(offset, limit)
 	if err != nil {
 		// Write internal server error response if error occurs
@@ -53,7 +54,7 @@ func (h InvoiceHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Write response
+	// 4. Write response
 	writeJsonResponse(w, http.StatusOK, invoices)
 }
 
@@ -62,7 +63,7 @@ func (h InvoiceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// 2. Get invoice by id
-	invoice, err := h.InvoiceService.GetById(id)
+	invoice, err := h.InvoiceService.GetByID(id)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
@@ -141,7 +142,7 @@ func (h InvoiceHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// 2. Delete invoice by invoice id
-	err := h.InvoiceService.DeleteById(id)
+	err := h.InvoiceService.DeleteByID(id)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
