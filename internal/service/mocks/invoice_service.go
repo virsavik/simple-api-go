@@ -3,6 +3,7 @@ package mocks
 import (
 	"github.com/stretchr/testify/mock"
 	"gokiosk/internal/model"
+	"time"
 )
 
 type InvoiceServiceMock struct {
@@ -46,6 +47,21 @@ func (i *InvoiceServiceMock) GetByID(id string) (model.Invoice, error) {
 	}
 
 	return invoice, rErr
+}
+
+func (i *InvoiceServiceMock) GetAllByDuration(from time.Time, to time.Time) ([]model.Invoice, error) {
+	args := i.Called(from, to)
+
+	var data []model.Invoice
+	if args.Get(0) != nil {
+		data = args.Get(0).([]model.Invoice)
+	}
+
+	var rErr error
+	if args.Get(1) != nil {
+		rErr = args.Error(1)
+	}
+	return data, rErr
 }
 
 func (i *InvoiceServiceMock) Create(invoice model.Invoice) (model.Invoice, error) {
