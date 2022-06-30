@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gokiosk/internal/model"
 	"gokiosk/internal/repository/mocks"
+	"gokiosk/internal/service/testdata/invoice_service_testdata"
 	"os"
 	"testing"
 	"time"
@@ -25,29 +26,10 @@ func TestInvoiceService_GenCSVReportByDuration(t *testing.T) {
 	}{
 		"success": {
 			given: GivenData{
-				fakeData: []model.Invoice{
-					{
-						ID:            "1",
-						StorekeeperID: "KEEPER_0001",
-						CreatedAt:     time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC), // 2006-01-02 15:04:05
-						UpdatedAt:     time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC), // 2006-01-02 15:04:05
-					},
-					{
-						ID:            "2",
-						StorekeeperID: "KEEPER_0001",
-						CreatedAt:     time.Date(2006, 2, 2, 15, 4, 5, 0, time.UTC), // 2006-02-02 15:04:05
-						UpdatedAt:     time.Date(2006, 2, 2, 15, 4, 5, 0, time.UTC), // 2006-02-02 15:04:05
-					},
-					{
-						ID:            "3",
-						StorekeeperID: "KEEPER_0002",
-						CreatedAt:     time.Date(2010, 2, 3, 15, 4, 5, 0, time.UTC), // 2010-02-03 15:04:05
-						UpdatedAt:     time.Date(2010, 2, 3, 15, 4, 5, 0, time.UTC), // 2010-02-03 15:04:05
-					},
-				},
+				fakeData: invoice_service_testdata.FakeInvoice,
 			},
 			expect: ExpectData{
-				csvPath: "testdata/invoice_service/gen_csv-success.csv",
+				csvPath: "testdata/invoice_service_testdata/gen_csv-success.csv",
 			},
 			err: nil,
 		},
