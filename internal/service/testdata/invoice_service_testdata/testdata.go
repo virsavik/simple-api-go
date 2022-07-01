@@ -1,11 +1,11 @@
 package invoice_service_testdata
 
 import (
-	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 	"time"
 )
 
-var FakeInvoice = []model.Invoice{
+var FakeInvoice = []orm.Invoice{
 	{
 		ID:            "5BDAE0B2-A18E-282F-3FA4-B0AA7D8B2284",
 		StorekeeperID: "metus sit amet ante.",

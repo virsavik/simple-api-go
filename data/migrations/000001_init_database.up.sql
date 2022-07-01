@@ -5,14 +5,17 @@ create table roles (
 );
 
 create table users (
+    -- TODO: change to string
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role_name VARCHAR(100) NOT NULL,
+    role_name VARCHAR(100) NOT NULL, -- TODO: role
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+select * from users where users.name like '%test%';
 
 create table products (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

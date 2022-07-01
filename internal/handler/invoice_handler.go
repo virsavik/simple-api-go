@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi"
 	"gokiosk/internal/errors"
 	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 	"gokiosk/internal/service"
 	"net/http"
 )
@@ -20,42 +21,34 @@ func NewInvoiceHandler(invoiceService service.IInvoiceService) InvoiceHandler {
 	}
 }
 
-func (h InvoiceHandler) Route() chi.Router {
-	r := chi.NewRouter()
+func (h InvoiceHandler) GetInvoices(w http.ResponseWriter, r *http.Request) {
+	// TODO: Validate input data
 
-	r.Get("/", h.GetAll)
-
-	r.Get("/{id}", h.GetByID)
-
-	r.Post("/", h.Create)
-
-	r.Put("/{id}", h.Update)
-
-	r.Delete("/{id}", h.Delete)
-
-	return r
-}
-
-func (h InvoiceHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	// 1. Get offset and limit from request
-	offset, limit := getPaginationParams(r)
+	page := getPaginationParams(r)
 
 	// 2. Throw bad request if offset or limit is not valid
-	if offset < 0 || limit < 0 {
+	if page.Offset < 0 || page.Limit < 0 {
 		writeErrorResponse(w, http.StatusBadRequest, fmt.Errorf(errors.ERR_OFFSET_AND_LIMIT_MUST_BE_POSITIVE))
 		return
 	}
 
 	// 3. Get all invoices by offset and limit
-	invoices, err := h.InvoiceService.GetAllByPaginate(offset, limit)
+	invoices, err := h.InvoiceService.GetAllByPaginate(page)
 	if err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
 		return
 	}
 
+	// TODO: Convert to Handler Response (invoices, pagination)
+	type Response struct {
+		Invoices []orm.Invoice  `json:"invoices"`
+		Paginate model.Paginate `json:"paginate"`
+	}
+
 	// 4. Write response
-	writeJsonResponse(w, http.StatusOK, invoices)
+	writeJsonResponse(w, http.StatusOK, Response{Invoices: invoices, Paginate: page})
 }
 
 func (h InvoiceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +74,7 @@ func (h InvoiceHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h InvoiceHandler) Create(w http.ResponseWriter, r *http.Request) {
 	// 1. Get invoice data from request body
-	var invoice model.Invoice
+	var invoice orm.Invoice
 	if err := json.NewDecoder(r.Body).Decode(&invoice); err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)
@@ -111,7 +104,7 @@ func (h InvoiceHandler) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	// 2. Get invoice data from request body
-	var invoice model.Invoice
+	var invoice orm.Invoice
 	if err := json.NewDecoder(r.Body).Decode(&invoice); err != nil {
 		// Write internal server error response if error occurs
 		writeErrorResponse(w, http.StatusInternalServerError, err)

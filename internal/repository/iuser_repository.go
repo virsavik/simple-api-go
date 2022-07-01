@@ -1,7 +1,7 @@
 package repository
 
-import "gokiosk/internal/model"
+import "gokiosk/internal/repository/orm"
 
 type IUserRepository interface {
-	GetByID(id string) (model.User, error)
+	GetByID(id string) (orm.User, error)
 }

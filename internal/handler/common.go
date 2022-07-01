@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"gokiosk/internal/errors"
+	"gokiosk/internal/model"
 	"log"
 	"net/http"
 	"strconv"
 )
 
 // GetPagination will read offset and limit from the request
-func getPaginationParams(r *http.Request) (int, int) {
+func getPaginationParams(r *http.Request) model.Paginate {
 	offset := 0
 	limit := 10
 	if r.URL.Query().Get("offset") != "" {
@@ -19,7 +20,7 @@ func getPaginationParams(r *http.Request) (int, int) {
 	if r.URL.Query().Get("limit") != "" {
 		limit, _ = strconv.Atoi(r.URL.Query().Get("limit"))
 	}
-	return offset, limit
+	return model.Paginate{Limit: offset, Offset: limit}
 }
 
 func writeJsonResponse(w http.ResponseWriter, status int, data interface{}) {

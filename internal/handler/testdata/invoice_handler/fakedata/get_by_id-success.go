@@ -1,11 +1,11 @@
 package fakedata
 
 import (
-	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 	"time"
 )
 
-var GetByIDFakeData = model.Invoice{
+var GetByIDFakeData = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER-0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),

@@ -1,5 +1,5 @@
-output = "internal/model"
-pkgname = "model"
+output = "internal/repository/orm"
+pkgname = "orm"
 wipe = true
 no-tests = false
 add-enum-types = true

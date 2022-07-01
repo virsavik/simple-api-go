@@ -1,31 +1,31 @@
 package fakedata
 
 import (
-	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 	"time"
 )
 
-var CreateSuccessParamFake = model.Invoice{
+var CreateSuccessParamFake = orm.Invoice{
 	StorekeeperID: "KEEPER_0002",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var CreateSuccessResultFake = model.Invoice{
+var CreateSuccessResultFake = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER_0002",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var CreateErrorIDMustBeEmptyFakeData = model.Invoice{
+var CreateErrorIDMustBeEmptyFakeData = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER_0002",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var CreateErrorStorekeeperIDNotFoundFakeData = model.Invoice{
+var CreateErrorStorekeeperIDNotFoundFakeData = orm.Invoice{
 	StorekeeperID: "KEEPER_XXXX",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),

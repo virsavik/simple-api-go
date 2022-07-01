@@ -2,19 +2,19 @@ package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
-	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 )
 
 type UserRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *UserRepositoryMock) GetByID(id string) (model.User, error) {
+func (m *UserRepositoryMock) GetByID(id string) (orm.User, error) {
 	args := m.Called(id)
 
-	var user model.User
+	var user orm.User
 	if args.Get(0) != nil {
-		user = args.Get(0).(model.User)
+		user = args.Get(0).(orm.User)
 	}
 
 	var rErr error

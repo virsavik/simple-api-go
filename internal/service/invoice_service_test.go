@@ -4,15 +4,21 @@ import (
 	"github.com/stretchr/testify/require"
 	"gokiosk/internal/model"
 	"gokiosk/internal/repository/mocks"
+	"gokiosk/internal/repository/orm"
+	servmock "gokiosk/internal/service/mocks"
 	"gokiosk/internal/service/testdata/invoice_service_testdata"
 	"os"
 	"testing"
 	"time"
 )
 
-func TestInvoiceService_GenCSVReportByDuration(t *testing.T) {
+func TestInvoiceService_GetCSVReportByDuration(t *testing.T) {
 	type GivenData struct {
-		fakeData []model.Invoice
+		fakeData       []orm.Invoice
+		duration       model.Duration
+		adminMailAddrs []string
+		mailContent    []byte
+		mailErr        error
 	}
 
 	type ExpectData struct {
@@ -26,7 +32,14 @@ func TestInvoiceService_GenCSVReportByDuration(t *testing.T) {
 	}{
 		"success": {
 			given: GivenData{
-				fakeData: invoice_service_testdata.FakeInvoice,
+				fakeData:       invoice_service_testdata.FakeInvoice,
+				adminMailAddrs: []string{"admin@example.com"},
+				duration: model.Duration{
+					From: time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC),
+					To:   time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC),
+				},
+				mailContent: []byte("Export csv successfully!"),
+				mailErr:     nil,
 			},
 			expect: ExpectData{
 				csvPath: "testdata/invoice_service_testdata/gen_csv-success.csv",
@@ -38,14 +51,16 @@ func TestInvoiceService_GenCSVReportByDuration(t *testing.T) {
 	for desc, tc := range tsc {
 		t.Run(desc, func(t *testing.T) {
 			// Given
+			mailMock := new(servmock.MailServiceMock)
+			mailMock.On("Send", tc.given.adminMailAddrs, tc.given.mailContent).Return(tc.given.mailErr)
+
 			repoMock := new(mocks.InvoiceRepositoryMock)
-			fromTime := time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC)
-			toTime := time.Date(2010, 2, 4, 0, 0, 0, 0, time.UTC)
-			repoMock.On("GetAllByDuration", fromTime, toTime).Return(tc.given.fakeData, tc.err)
-			service := NewInvoiceService(repoMock)
+			repoMock.On("GetInvoicesByDuration", tc.given.duration).Return(tc.given.fakeData, tc.err)
+
+			service := NewInvoiceService(repoMock, mailMock)
 
 			// When
-			actualCSV, err := service.GenCSVReportByDuration(fromTime, toTime)
+			actualCSV, err := service.GetCSVReport(tc.given.duration)
 
 			// Then
 			require.Nil(t, err, "Should be not error")

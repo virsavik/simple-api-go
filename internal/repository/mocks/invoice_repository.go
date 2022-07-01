@@ -3,19 +3,19 @@ package mocks
 import (
 	"github.com/stretchr/testify/mock"
 	"gokiosk/internal/model"
-	"time"
+	"gokiosk/internal/repository/orm"
 )
 
 type InvoiceRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *InvoiceRepositoryMock) GetAllByDuration(from time.Time, to time.Time) ([]model.Invoice, error) {
-	args := m.Called(from, to)
+func (m *InvoiceRepositoryMock) GetInvoicesByDuration(duration model.Duration) ([]orm.Invoice, error) {
+	args := m.Called(duration)
 
-	var invoices []model.Invoice
+	var invoices []orm.Invoice
 	if args.Get(0) != nil {
-		invoices = args.Get(0).([]model.Invoice)
+		invoices = args.Get(0).([]orm.Invoice)
 	}
 
 	var rErr error
@@ -26,12 +26,12 @@ func (m *InvoiceRepositoryMock) GetAllByDuration(from time.Time, to time.Time) (
 	return invoices, rErr
 }
 
-func (m *InvoiceRepositoryMock) GetInvoiceProductsByInvoiceID(invoiceID string) ([]model.InvoiceProduct, error) {
+func (m *InvoiceRepositoryMock) GetInvoiceProductsByInvoiceID(invoiceID string) ([]orm.InvoiceProduct, error) {
 	args := m.Called(invoiceID)
 
-	var invoiceProducts []model.InvoiceProduct
+	var invoiceProducts []orm.InvoiceProduct
 	if args.Get(0) != nil {
-		invoiceProducts = args.Get(0).([]model.InvoiceProduct)
+		invoiceProducts = args.Get(0).([]orm.InvoiceProduct)
 	}
 
 	var rErr error

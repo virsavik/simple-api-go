@@ -2,11 +2,11 @@ package repository
 
 import (
 	"gokiosk/internal/model"
-	"time"
+	"gokiosk/internal/repository/orm"
 )
 
 type IInvoiceRepository interface {
-	GetAllByDuration(from time.Time, to time.Time) ([]model.Invoice, error)
+	GetInvoicesByDuration(duration model.Duration) ([]orm.Invoice, error)
 
-	GetInvoiceProductsByInvoiceID(invoiceID string) ([]model.InvoiceProduct, error)
+	GetInvoiceProductsByInvoiceID(invoiceID string) ([]orm.InvoiceProduct, error)
 }

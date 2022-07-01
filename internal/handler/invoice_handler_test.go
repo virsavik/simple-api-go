@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gokiosk/internal/errors"
 	"gokiosk/internal/handler/testdata/invoice_handler/fakedata"
-	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 	"gokiosk/internal/service/mocks"
 	"io/ioutil"
 	"net/http"
@@ -22,7 +22,7 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 	type GivenData struct {
 		offset   int
 		limit    int
-		fakeData []model.Invoice
+		fakeData []orm.Invoice
 	}
 
 	type ExpectedData struct {
@@ -75,7 +75,7 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			// 2. When
-			invoiceHandler.GetAll(w, r)
+			invoiceHandler.GetInvoices(w, r)
 
 			// 3. Then
 			if tc.expErr != nil {
@@ -86,7 +86,7 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 				// Should be success
 				require.Equal(t, tc.exp.statusCode, w.Code, "Should equal status")
 
-				var actualResult []model.Invoice
+				var actualResult []orm.Invoice
 				if err := json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}
@@ -96,7 +96,7 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 					t.Fatal(rfErr)
 				}
 
-				var expectedResult []model.Invoice
+				var expectedResult []orm.Invoice
 				if err := json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
@@ -110,7 +110,7 @@ func TestInvoiceHandler_GetAll(t *testing.T) {
 func TestInvoiceHandler_GetByID(t *testing.T) {
 	type GivenData struct {
 		invID    string
-		fakeData model.Invoice
+		fakeData orm.Invoice
 	}
 
 	type ExpectedData struct {
@@ -170,7 +170,7 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 				// Should be success
 				require.Equal(t, tc.exp.statusCode, w.Code)
 
-				var actualResult model.Invoice
+				var actualResult orm.Invoice
 				if err := json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}
@@ -179,7 +179,7 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 				if rfErr != nil {
 					t.Fatal(rfErr)
 				}
-				var expectedResult model.Invoice
+				var expectedResult orm.Invoice
 				if err := json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
@@ -192,8 +192,8 @@ func TestInvoiceHandler_GetByID(t *testing.T) {
 
 func TestInvoiceHandler_Create(t *testing.T) {
 	type GivenData struct {
-		serviceMethodParam  model.Invoice
-		serviceMethodResult model.Invoice
+		serviceMethodParam  orm.Invoice
+		serviceMethodResult orm.Invoice
 		reqBodyPath         string
 	}
 
@@ -269,7 +269,7 @@ func TestInvoiceHandler_Create(t *testing.T) {
 				// Should be success
 				require.Equal(t, tc.exp.statusCode, w.Code) // Check response code
 
-				var actualResult model.Invoice
+				var actualResult orm.Invoice
 				if err := json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}
@@ -279,7 +279,7 @@ func TestInvoiceHandler_Create(t *testing.T) {
 					t.Fatal(rfErr)
 				}
 
-				var expectedResult model.Invoice
+				var expectedResult orm.Invoice
 				if err = json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
@@ -293,8 +293,8 @@ func TestInvoiceHandler_Create(t *testing.T) {
 func TestInvoiceHandler_Update(t *testing.T) {
 	type GivenData struct {
 		invID               string
-		serviceMethodParam  model.Invoice
-		serviceMethodResult model.Invoice
+		serviceMethodParam  orm.Invoice
+		serviceMethodResult orm.Invoice
 		reqBodyPath         string
 	}
 
@@ -404,12 +404,12 @@ func TestInvoiceHandler_Update(t *testing.T) {
 				if rfErr != nil {
 					t.Fatal(rfErr)
 				}
-				var expectedResult model.Invoice
+				var expectedResult orm.Invoice
 				if err = json.Unmarshal(resultBytes, &expectedResult); err != nil {
 					t.Fatal(err)
 				}
 
-				var actualResult model.Invoice
+				var actualResult orm.Invoice
 				if err = json.Unmarshal(w.Body.Bytes(), &actualResult); err != nil {
 					t.Fatal(err)
 				}

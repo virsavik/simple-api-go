@@ -1,46 +1,46 @@
 package fakedata
 
 import (
-	"gokiosk/internal/model"
+	"gokiosk/internal/repository/orm"
 	"time"
 )
 
-var UpdateSuccessParamFake = model.Invoice{
+var UpdateSuccessParamFake = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER_0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var UpdateSuccessResultFake = model.Invoice{
+var UpdateSuccessResultFake = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER_0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var UpdateErrorNotFoundParamFake = model.Invoice{
+var UpdateErrorNotFoundParamFake = orm.Invoice{
 	ID:            "X",
 	StorekeeperID: "KEEPER_0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var UpdateErrorNotFoundResultFake = model.Invoice{
+var UpdateErrorNotFoundResultFake = orm.Invoice{
 	ID:            "X",
 	StorekeeperID: "KEEPER_0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var UpdateErrorStoreKeeperIDNotFoundParamFake = model.Invoice{
+var UpdateErrorStoreKeeperIDNotFoundParamFake = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER_0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),
 	UpdatedAt:     time.Unix(0, 0).UTC(),
 }
 
-var UpdateErrorStoreKeeperIDNotFoundResultFake = model.Invoice{
+var UpdateErrorStoreKeeperIDNotFoundResultFake = orm.Invoice{
 	ID:            "1",
 	StorekeeperID: "KEEPER_0003",
 	CreatedAt:     time.Unix(0, 0).UTC(),
